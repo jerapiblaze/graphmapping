@@ -5,7 +5,7 @@ import networkx as nx
 import gzip
 
 class GraphMappingProblem:
-    def __init__(self, phy, sfcs) -> None:
+    def __init__(self, phy:nx.DiGraph, sfcs:list[nx.DiGraph]) -> None:
         self.name = f"graphmapping_{uuid.uuid4().hex}"
         self.PHY = phy
         self.SFC_SET = sfcs
