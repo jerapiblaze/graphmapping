@@ -16,7 +16,7 @@ chmod +x ./setup.sh
 Windows:
 
 ```bash
-setup.ps1
+./setup.ps1
 ```
 
 Activate the environment:
