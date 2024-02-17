@@ -1,0 +1,29 @@
+---
+PROBLEM_SETNAME: "DUMMY"
+PROBLEM_COUNT: 10
+KEEPPHY: 1
+PHY:
+  MODE: "FROMGML@./data/__internals__/SndLib/atlanta.gml"
+  NODECOUNT:
+    min: 10
+    max: 100
+  NODECAP:
+    min: 10
+    max: 100
+  LINKCAP:
+    min: 10
+    max: 100
+  LINKDISRATE: 0.0
+SFCSET:
+  MODE: "linear"
+  SFCCOUNT: 100
+  NODECOUNT:
+    min: 10
+    max: 100
+  NODEREQ:
+    min: 10
+    max: 100
+  LINKREQ:
+    min: 10
+    max: 100
+...
