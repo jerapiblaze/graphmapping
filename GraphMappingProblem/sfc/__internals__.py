@@ -7,3 +7,5 @@ class SfcGraphGenerator:
         pass
     def Generate(self,)->nx.DiGraph:
         pass
+    def Seed(x=None)->None:
+        rd.seed(x)

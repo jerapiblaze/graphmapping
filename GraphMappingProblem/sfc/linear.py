@@ -15,5 +15,5 @@ class LinearSfcGraphGenerator(SfcGraphGenerator):
         for n in list(SFC.nodes)[:-1]:
             linkreq = self.linkreq if type(self.linkreq) == int else rd.randint(self.linkreq[0], self.linkreq[1])
             SFC.add_edge(n, n+1, req=linkreq)
-        SFC.name = f"linearsfc_{len(list(SFC.nodes))}nodes_{len(list(SFC.edges))}links_{uuid.uuid4().hex}"
+        SFC.name = f"linearsfc_{len(list(SFC.nodes))}nodes_{len(list(SFC.edges))}links_{uuid.uuid4().hex[:8]}"
         return SFC

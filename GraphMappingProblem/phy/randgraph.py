@@ -27,5 +27,5 @@ class RandomGraphGenerator(PhysicalGraphGenerator):
         for i in range(int(linkcount * self.linkdisconnectrate)):
             link = rd.choice(list(PHY.edges))
             PHY.remove_edge(link[0], link[1])
-        PHY.name = f"randomphy_{len(list(PHY.nodes))}nodes_{len(list(PHY.edges))}links_{uuid.uuid4().hex}"
+        PHY.name = f"randomphy_{len(list(PHY.nodes))}nodes_{len(list(PHY.edges))}links_{uuid.uuid4().hex[:8]}"
         return PHY

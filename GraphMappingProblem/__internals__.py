@@ -6,7 +6,7 @@ import gzip
 
 class GraphMappingProblem:
     def __init__(self, phy:nx.DiGraph, sfcs:list[nx.DiGraph]) -> None:
-        self.name = f"graphmapping_{uuid.uuid4().hex}"
+        self.name = f"graphmapping_{uuid.uuid4().hex[:8]}"
         self.PHY = phy
         self.SFC_SET = sfcs
         self.solution = None
