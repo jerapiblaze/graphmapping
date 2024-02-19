@@ -45,7 +45,13 @@ def Main(config:dict):
     for i in range(PROBLEM_COUNT):
         if not KEEPPHY:
             PHY = phygraphGenerator.Generate()
-        SFC_SET = [sfcgraphGenerator.Generate() for i in range(sfc_count)]
+        SFC = sfcgraphGenerator.Generate()
+        SFC_SET = []
+        for i in range(config["SFCSET"]["SFCCOUNT"]):
+            if not config["SFCSET"]["KEEPSFC"]:
+                SFC = sfcgraphGenerator.Generate()
+            SFC_SET.append(SFC)
+            print(SFC.nodes(data=True))
         problem = GraphMappingProblem(phy=PHY, sfcs=SFC_SET)
         savepath = os.path.join(OUTPUT_PATH, f"{problem.name}.pkl.gz")
         SaveProblem(path=savepath, problem=problem)

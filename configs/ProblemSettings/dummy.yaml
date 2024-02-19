@@ -17,6 +17,7 @@ PHY:
 SFCSET:
   MODE: "linear"
   SFCCOUNT: 100
+  KEEPSFC: 1
   NODECOUNT:
     min: 10
     max: 100
