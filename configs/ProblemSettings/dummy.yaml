@@ -1,30 +1,30 @@
 ---
 PROBLEM_SETNAME: "DUMMY"
-PROBLEM_COUNT: 10
+PROBLEM_COUNT: 1
 KEEPPHY: 1
 PHY:
-  MODE: "FROMGML@./data/__internals__/SndLib/atlanta.gml"
+  MODE: "FROMGML@./data/__internals__/SndLib/pioro40.gml"
   NODECOUNT:
     min: 10
     max: 100
   NODECAP:
-    min: 10
-    max: 100
+    min: 1000
+    max: 1000
   LINKCAP:
-    min: 10
-    max: 100
+    min: 1000
+    max: 1000
   LINKDISRATE: 0.0
 SFCSET:
   MODE: "linear"
   SFCCOUNT: 100
-  KEEPSFC: 1
+  KEEPSFC: 0
   NODECOUNT:
-    min: 10
-    max: 100
+    min: 5
+    max: 5
   NODEREQ:
-    min: 10
-    max: 100
+    min: 2
+    max: 2
   LINKREQ:
-    min: 10
-    max: 100
+    min: 2
+    max: 2
 ...

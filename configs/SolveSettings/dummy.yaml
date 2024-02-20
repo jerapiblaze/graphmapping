@@ -4,9 +4,15 @@ SOLVER: "ILP@SCIP"
 TIMELIMIT: 180
 LOGPATH: "./data/logs"
 ...
+# ---
+# PROBLEM_SETNAME: "DUMMY"
+# SOLVER: "ILP@CBC"
+# TIMELIMIT: 180
+# LOGPATH: "./data/logs"
+# ...
 ---
 PROBLEM_SETNAME: "DUMMY"
-SOLVER: "ILP@CBC"
+SOLVER: "QL@./data/__internals__/QLearn/DUMMY.pkl.gz"
 TIMELIMIT: 180
 LOGPATH: "./data/logs"
 ...
