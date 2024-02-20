@@ -9,12 +9,23 @@ from GraphMappingProblem import GraphMappingProblem, SaveProblem, LoadProblem
 from GraphMappingProblem.validate import ValidateSolution
 
 
-def SolveMpWorker(queue: mp.Queue, Solver, solution_setpath: str, log_setpath:str, timelimit:int):
+def ILPSolveMpWorker(queue: mp.Queue, Solver, solution_setpath: str, log_setpath:str, timelimit:int):
     while queue.qsize():
         problem_path = queue.get()
         model = Solver(problem=LoadProblem(problem_path), logpath=log_setpath, timelimit=timelimit)
         solved_problem = model.Solve()
-        validated_problem = ValidateSolution(solved_problem)
+        validated_problem = ValidateSolution(solved_problem, debug=True)
+        savepath = os.path.join(solution_setpath, f"{validated_problem.name}.pkl.gz")
+        SaveProblem(savepath, validated_problem)
+    exit()
+
+
+def QLearnSolveMpWorker(queue: mp.Queue, Solver, solution_setpath: str, log_setpath: str, timelimit: int, agentpath:str):
+    while queue.qsize():
+        problem_path = queue.get()
+        model = Solver(problem=LoadProblem(problem_path), logpath=log_setpath, timelimit=timelimit, agentpath=agentpath)
+        solved_problem = model.Solve()
+        validated_problem = ValidateSolution(solved_problem, debug=True)
         savepath = os.path.join(solution_setpath, f"{validated_problem.name}.pkl.gz")
         SaveProblem(savepath, validated_problem)
     exit()
@@ -26,8 +37,15 @@ def Main(config:dict):
     problem_set = RecurseListDir(PROBLEM_SETPATH, ["*.pkl.gz"])
 
     SOLVER = str(config["SOLVER"]).split("@")
+    timelimit = config["TIMELIMIT"] if config["TIMELIMIT"] >= 0 else None
+    target=None
+    args = ()
+
+    q = IterToQueue(problem_set)
+    
     match SOLVER[0]:
         case "ILP":
+            target=ILPSolveMpWorker
             match SOLVER[1]:
                 case "CBC":
                     from Solvers.ILP.cbc import Solver
@@ -39,18 +57,24 @@ def Main(config:dict):
                     from Solvers.ILP.gurobi import Solver
                 case _:
                     raise Exception(f"[Invalid config] SOLVER=ILP_{SOLVER[1]}")
-            pass
+            SOLUTION_SETPATH = os.path.join("./data/solutions", f"{PROBLEM_SETNAME}@{'_'.join(SOLVER)}")
+            CleanDir(SOLUTION_SETPATH)
+            LOG_SETPATH = os.path.join("./data/logs", f"{PROBLEM_SETNAME}@{'_'.join(SOLVER)}")
+            CleanDir(LOG_SETPATH)
+            args = (q, Solver, SOLUTION_SETPATH, LOG_SETPATH, timelimit)
+        case "QL":
+            from Solvers.QLearn import Solver
+            target = QLearnSolveMpWorker
+            agentname = os.path.basename(SOLVER[1]).split(".")[0]
+            SOLUTION_SETPATH = os.path.join("./data/solutions", f"{PROBLEM_SETNAME}@QL_{agentname}")
+            CleanDir(SOLUTION_SETPATH)
+            LOG_SETPATH = os.path.join("./data/logs", f"{PROBLEM_SETNAME}@{'_'.join(SOLVER)}")
+            CleanDir(LOG_SETPATH)
+            args = (q, Solver, SOLUTION_SETPATH, LOG_SETPATH, timelimit, SOLVER[1])
         case _:
             raise Exception(f"[Invalid config] SOLVER={SOLVER[0]}")
-    
-    SOLUTION_SETPATH = os.path.join("./data/solutions", f"{PROBLEM_SETNAME}@{'_'.join(SOLVER)}")
-    CleanDir(SOLUTION_SETPATH)
-    LOG_SETPATH = os.path.join("./data/logs", f"{PROBLEM_SETNAME}@{'_'.join(SOLVER)}")
-    CleanDir(LOG_SETPATH)
-    q = IterToQueue(problem_set)
 
-    timelimit = config["TIMELIMIT"] if config["TIMELIMIT"] >= 0 else None
-    MultiProcessing(SolveMpWorker, (q, Solver, SOLUTION_SETPATH, LOG_SETPATH, timelimit),4)
+    MultiProcessing(target, args, 4)
 
 
 def MpWorker(queue: mp.Queue):
