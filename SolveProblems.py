@@ -65,10 +65,10 @@ def Main(config:dict):
         case "QL":
             from Solvers.QLearn import Solver
             target = QLearnSolveMpWorker
-            agentname = os.path.basename(SOLVER[1]).split(".")[0]
+            agentname = str(os.path.basename(SOLVER[1])).split(".")[0]
             SOLUTION_SETPATH = os.path.join("./data/solutions", f"{PROBLEM_SETNAME}@QL_{agentname}")
             CleanDir(SOLUTION_SETPATH)
-            LOG_SETPATH = os.path.join("./data/logs", f"{PROBLEM_SETNAME}@{'_'.join(SOLVER)}")
+            LOG_SETPATH = os.path.join("./data/logs", f"{PROBLEM_SETNAME}@QL_{agentname}")
             CleanDir(LOG_SETPATH)
             args = (q, Solver, SOLUTION_SETPATH, LOG_SETPATH, timelimit, SOLVER[1])
         case _:

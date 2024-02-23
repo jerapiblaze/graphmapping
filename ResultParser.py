@@ -16,7 +16,7 @@ def MpWorker(queue:mp.Queue, result_file:str):
         problem_name = solved_problem.name
         status = solved_problem.status
         solution_status = solved_problem.solution_status
-        obj_value = solved_problem.obj_value if solution_status == 1 else 0
+        obj_value = solved_problem.obj_value
         runtime = solved_problem.solution_time
         with open(result_file, "at") as f:
             f.write(f"{set_name},{solver_name},{problem_name},{status},{solution_status},{abs(obj_value)},{runtime}\n")
