@@ -40,9 +40,9 @@ class StaticMapping2Env(gym.Env):
         # Observation space: n -> vnf_order_index
         self.observation_space = gym.spaces.Discrete(n=len(self.vnf_order), seed=42, start=0)
         self.obs_space_size = len(self.vnf_order)
-        # Action space: {0, 1, 2, ..., n} -> physical node id
+        # Action space: {-1, 0, 1, 2, ..., n} -> physical node id, -1 = skip
         # self.action_space = gym.Space(list(self.physical_graph.nodes), dtype='int64')
-        self.action_space = gym.spaces.Discrete(n=len(list(self.physical_graph.nodes)), start=0, seed=42)
+        self.action_space = gym.spaces.Discrete(n=len(list(self.physical_graph.nodes))+1, start=-1, seed=42)
         self.action_space_size = len(list(self.physical_graph.nodes))
         self.M = M
         self.beta = beta

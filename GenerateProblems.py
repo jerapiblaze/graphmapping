@@ -7,6 +7,7 @@ from utilities.config import ConfigParser
 from utilities.multiprocessing import MultiProcessing, IterToQueue
 from utilities.dir import RecurseListDir, CleanDir
 from GraphMappingProblem import GraphMappingProblem, SaveProblem, LoadProblem
+from GraphMappingProblem.utilities import GraphClone
 
 def Main(config:dict):
     print(config)
@@ -51,6 +52,8 @@ def Main(config:dict):
         for i in range(config["SFCSET"]["SFCCOUNT"]):
             if not config["SFCSET"]["KEEPSFC"]:
                 SFC = sfcgraphGenerator.Generate()
+            else:
+                SFC = GraphClone(SFC)
             SFC_SET.append(SFC)
         problem = GraphMappingProblem(phy=PHY, sfcs=SFC_SET)
         savepath = os.path.join(OUTPUT_PATH, f"{problem.name}.pkl.gz")
