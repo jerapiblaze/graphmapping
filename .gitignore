@@ -3,3 +3,5 @@ data
 configs/*/*
 !configs/*/dummy.yaml
 .vscode
+.csv
+.txt

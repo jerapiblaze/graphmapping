@@ -1,6 +1,7 @@
 import multiprocessing as mp
 import os
 import uuid
+import copy
 
 from utilities.config import ConfigParser
 from utilities.multiprocessing import MultiProcessing, IterToQueue
@@ -51,7 +52,6 @@ def Main(config:dict):
             if not config["SFCSET"]["KEEPSFC"]:
                 SFC = sfcgraphGenerator.Generate()
             SFC_SET.append(SFC)
-            print(SFC.nodes(data=True))
         problem = GraphMappingProblem(phy=PHY, sfcs=SFC_SET)
         savepath = os.path.join(OUTPUT_PATH, f"{problem.name}.pkl.gz")
         SaveProblem(path=savepath, problem=problem)

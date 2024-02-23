@@ -40,9 +40,9 @@ class StaticMapping2Env(gym.Env):
         # Observation space: n -> vnf_order_index
         self.observation_space = gym.spaces.Discrete(n=len(self.vnf_order), seed=42, start=0)
         self.obs_space_size = len(self.vnf_order)
-        # Action space: {-1,0, 1, 2, ..., n} -> physical node id
+        # Action space: {0, 1, 2, ..., n} -> physical node id
         # self.action_space = gym.Space(list(self.physical_graph.nodes), dtype='int64')
-        self.action_space = gym.spaces.Discrete(n=len(list(self.physical_graph.nodes))+1, start=-1, seed=42)
+        self.action_space = gym.spaces.Discrete(n=len(list(self.physical_graph.nodes)), start=0, seed=42)
         self.action_space_size = len(list(self.physical_graph.nodes))
         self.M = M
         self.beta = beta
@@ -50,7 +50,7 @@ class StaticMapping2Env(gym.Env):
 
     def reset(self, seed=None, options=None):
         # Initialize state
-        self.physical_graph_current = copy.deepcopy (self.physical_graph)
+        self.physical_graph_current = copy.deepcopy(self.physical_graph)
         self.vnf_order_index_current = 0
         self.node_solution_current = list()
         self.link_solution_current = list()
@@ -152,7 +152,7 @@ class StaticMapping2Env(gym.Env):
             return None
         # Check if node is used or not
         if any(node_sol[0] == sfc_id and node_sol[2] == node_id for node_sol in self.node_solution_current):
-            return f"used"
+            return f"Node {node_id} is already used"
 
         return None
 
@@ -198,9 +198,9 @@ class StaticMapping2Env(gym.Env):
         self.sfc_solution.append(sfcid)
         self.__mapped_sfc += 1
 
-    def __confirm_solution2(self):
-        self.node_solution = copy.deepcopy(self.node_solution_lastgood)
-        self.link_solution = copy.deepcopy(self.link_solution_lastgood)
+    # def __confirm_solution2(self):
+    #     self.node_solution = copy.deepcopy(self.node_solution_lastgood)
+    #     self.link_solution = copy.deepcopy(self.link_solution_lastgood)
 
     def step(self, action):
         # print("cu rent: ", self.node_solution_current)
@@ -232,13 +232,6 @@ class StaticMapping2Env(gym.Env):
         # If action is invalid
         action_validation = self.__validate_action(action)
         if (action_validation):
-            if action_validation == "used":
-                reward = 0 - self.M
-                info = {
-                    "message " : "used"
-                }
-                return (self.vnf_order_index_current, reward, self.__is_reached_termination(), self.__is_truncated, info)
-
             reward = 0 - self.M
             info = {
                 "message": f"action invalid: {action_validation}"
@@ -266,7 +259,6 @@ class StaticMapping2Env(gym.Env):
         # If is the first action of a sfc, no need to map link
         if is_first:
             self.__confirm_mapping()
-            self.__confirm_solution2()
             # reward = 1
             reward = self.M - (ai_t - rv)
             info = {
@@ -297,7 +289,6 @@ class StaticMapping2Env(gym.Env):
             self.__is_truncated = True
             return (self.vnf_order_index_current, reward, True, self.__is_truncated, info)
         self.__confirm_mapping()
-        self.__confirm_solution2()
 
         reward = self.M - (ai_t - rv) - self.beta * nhops
         info = {
