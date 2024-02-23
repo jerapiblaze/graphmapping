@@ -21,27 +21,52 @@ class QLearningAgent():
             return np.argmax(self.q_table[cr_s])
 
     def update_q_table(self, obs, action, reward, next_obs):
-        best_next_action = np.argmax(self.q_table[next_obs])
-        # print("curent q: ", self.q_table[cr_s, action])
-        self.q_table[obs, action] += self.alpha * (reward + self.gamma * self.q_table[next_obs, best_next_action] - self.q_table[obs, action])
-        # print("new q: ", self.q_table[cr_s, action] )
+        # print()
+        if next_obs >= self.state_space_size:
+            new_q = (1-self.alpha)* self.q_table[obs, action] +self.alpha * reward
+            self.q_table[obs, action] = new_q
+            # self.q_table[obs, action] += (1-self.alpha)* self.q_table[obs, action] +self.alpha * reward
+        else:
+            best_next_action = np.argmax(self.q_table[next_obs])
+            # print("current q: ", self.q_table[obs, action])
+            new_q = (1-self.alpha)* self.q_table[obs, action] + self.alpha * (reward + self.gamma * self.q_table[next_obs, best_next_action] - self.q_table[obs, action])
+            # self.q_table[obs, action] += (1-self.alpha)* self.q_table[obs, action] + self.alpha * (reward + self.gamma * self.q_table[next_obs, best_next_action] - self.q_table[obs, action])
+            self.q_table[obs, action] = new_q
+            # print("new q: ", self.q_table[obs, action])
 
 # Train the agent, return the trained agent and the q-value during episodes
 def TrainAgent(agent:QLearningAgent, env:StaticMapping2Env, nepisode:int, verbose:bool=False) -> tuple[QLearningAgent, list[float]]:
     qvalue = list()
     for ep in range(nepisode):
+        print("ep: ", ep)
         obs, info = env.reset()
         terminated = False
         truncated = False
+        obs_set = set()
+
         while not terminated and not truncated:
+            # print(agent.q_table)
+            # print(env.vnf_order)
             action = agent.choose_action(obs)
             if not action:
                 action = env.action_space.sample()
+            # print("vnf_cur: ",env.vnf_order_index_current)
+            # print("action: ", action)
+            # print("obs: ", obs)
+
             next_obs, reward, terminated, truncated, info = env.step(action)
+            # print(next_obs, reward, terminated, truncated, info)
+            # print("next obs: ", next_obs)
             agent.update_q_table(obs, action, reward, next_obs)
+            
+
             obs = next_obs
+            
+            # print(env.node_solution)
+
         if verbose:
             print(f"ep_{ep}: {env.is_full_mapping()} {obs} {info}")
+            pass
         qvalue.append((ep,np.sum(agent.q_table)))
     return agent, qvalue
 

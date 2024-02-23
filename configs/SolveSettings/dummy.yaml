@@ -1,7 +1,7 @@
 ---
 PROBLEM_SETNAME: "DUMMY"
 SOLVER: "ILP@SCIP"
-TIMELIMIT: 180
+TIMELIMIT: 1000
 LOGPATH: "./data/logs"
 ...
 # ---

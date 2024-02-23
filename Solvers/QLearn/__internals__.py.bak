@@ -14,7 +14,7 @@ class Solver(GraphMappingSolver):
     def __init__(self, problem: GraphMappingProblem, agentpath: str, logpath: str = None, timelimit: int = None, verbose: bool = False):
         self.problem = problem
         self.agent = agent.LoadAgent(agentpath)
-        self.env = env.StaticMapping2Env(problem.PHY, problem.SFC_SET, key_attrs={"node_req": "req", "link_req": "req", "node_cap": "cap", "link_cap": "cap"}, M=1500, beta=20)
+        self.env = env.StaticMapping2Env(problem.PHY, problem.SFC_SET, key_attrs={"node_req": "req", "link_req": "req", "node_cap": "cap", "link_cap": "cap"}, M=200, beta=5)
         self.logpath = logpath
         self.timelimit = timelimit
         self.verbose = verbose
