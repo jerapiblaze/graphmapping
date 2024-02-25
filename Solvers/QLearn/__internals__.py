@@ -37,4 +37,8 @@ class Solver(GraphMappingSolver):
         self.problem.solution_time = timedr
         self.problem.solution = self.env.render()
         self.problem.obj_value = len([x for x in self.problem.solution.keys() if str(x).__contains__("xSFC")])
+        if self.logpath:
+            with open(f"{os.path.join(self.logpath, self.problem.name)}.sol", "wt") as f:
+                for k in self.problem.solution.keys():
+                    f.write(f"{k}:{self.problem.solution[k]}\n")
         return self.problem

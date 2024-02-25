@@ -29,7 +29,7 @@ class Solver(GraphMappingSolver):
         self.problem.status = 1
         while not terminated and not truncated:
             obs = torch.tensor(obs, dtype=torch.long, device=agent.DEVICE)
-            action = self.agent.select_action(obs, self.env, trainmode=False)
+            action = self.agent.select_action(obs, self.env, trainmode=False).item()
             next_obs, reward, terminated, truncated, info = self.env.step(action)
             obs = next_obs
             timenow = time.perf_counter()
@@ -38,6 +38,9 @@ class Solver(GraphMappingSolver):
                 break
         self.problem.solution_time = timedr
         self.problem.solution = self.env.render()
-        self.problem.obj_value = len(
-            [x for x in self.problem.solution.keys() if str(x).__contains__("xSFC")])
+        self.problem.obj_value = len([x for x in self.problem.solution.keys() if str(x).__contains__("xSFC")])
+        if self.logpath:
+            with open(f"{os.path.join(self.logpath, self.problem.name)}.sol", "wt") as f:
+                for k in self.problem.solution.keys():
+                    f.write(f"{k}:{self.problem.solution[k]}\n")
         return self.problem
