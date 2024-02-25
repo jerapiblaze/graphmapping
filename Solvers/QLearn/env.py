@@ -152,7 +152,7 @@ class StaticMapping2Env(gym.Env):
             return None
         # Check if node is used or not
         if any(node_sol[0] == sfc_id and node_sol[2] == node_id for node_sol in self.node_solution_current):
-            return f"used"
+            return f"node {node_id} used"
 
         return None
 
@@ -232,12 +232,12 @@ class StaticMapping2Env(gym.Env):
         # If action is invalid
         action_validation = self.__validate_action(action)
         if (action_validation):
-            if action_validation == "used":
-                reward = 0 - self.M
-                info = {
-                    "message " : "used"
-                }
-                return (self.vnf_order_index_current, reward, self.__is_reached_termination(), self.__is_truncated, info)
+            # if action_validation == "used":
+            #     reward = 0 - self.M
+            #     info = {
+            #         "message " : "used"
+            #     }
+            #     return (self.vnf_order_index_current, reward, self.__is_reached_termination(), self.__is_truncated, info)
 
             reward = 0 - self.M
             info = {

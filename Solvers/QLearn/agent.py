@@ -5,13 +5,24 @@ import numpy as np
 from .env import *
 
 class QLearningAgent():
-    def __init__(self, state_space_size, action_space_size, alpha=0.01, gamma=0.8, epsilon=0.009):
+    def __init__(self, state_space_size, action_space_size, alpha=0.01, gamma=0.8, epsilon_max= 0.9, epsilon_min=0.009, epsilon_decay=0.9876):
         self.state_space_size = state_space_size
         self.action_space_size = action_space_size
         self.alpha = alpha
         self.gamma = gamma
-        self.epsilon = epsilon
+        self.epsilon_max = epsilon_max
+        self.epsilon_min = epsilon_min
+        self.epsilon_decay = epsilon_decay
+        self.epsilon = self.epsilon_max
         self.q_table = np.random.uniform(0, 1, size=(state_space_size, action_space_size))
+
+    def end_episode(self, reset=False):
+        if reset:
+            self.epsilon = self.epsilon_max
+        else:
+            new_epsilon = self.epsilon * self.epsilon_decay
+            new_epsilon = new_epsilon if new_epsilon > self.epsilon_min else self.epsilon_min
+            self.epsilon = new_epsilon
 
     def choose_action(self, cr_s, trainmode:int=True):
         rand = np.random.rand()
@@ -36,39 +47,26 @@ class QLearningAgent():
 
 # Train the agent, return the trained agent and the q-value during episodes
 def TrainAgent(agent:QLearningAgent, env:StaticMapping2Env, nepisode:int, verbose:bool=False) -> tuple[QLearningAgent, list[float]]:
-    qvalue = list()
+    reward_list = []
     for ep in range(nepisode):
-        print("ep: ", ep)
         obs, info = env.reset()
         terminated = False
         truncated = False
-        obs_set = set()
-
+        rw_list = []
         while not terminated and not truncated:
-            # print(agent.q_table)
-            # print(env.vnf_order)
             action = agent.choose_action(obs)
             if not action:
                 action = env.action_space.sample()
-            # print("vnf_cur: ",env.vnf_order_index_current)
-            # print("action: ", action)
-            # print("obs: ", obs)
-
             next_obs, reward, terminated, truncated, info = env.step(action)
-            # print(next_obs, reward, terminated, truncated, info)
-            # print("next obs: ", next_obs)
+            rw_list.append(reward)
             agent.update_q_table(obs, action, reward, next_obs)
-            
-
             obs = next_obs
-            
-            # print(env.node_solution)
-
         if verbose:
             print(f"ep_{ep}: {env.is_full_mapping()} {obs} {info}")
             pass
-        qvalue.append((ep,np.sum(agent.q_table)))
-    return agent, qvalue
+        reward_list.append((ep, sum(rw_list)))
+        agent.end_episode()
+    return agent, reward_list
 
 def SaveAgent(path:str, agent:QLearningAgent):
     with gz.open(path, "wb") as f:
