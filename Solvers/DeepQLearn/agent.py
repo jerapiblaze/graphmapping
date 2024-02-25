@@ -7,6 +7,7 @@ from collections import namedtuple, deque
 from itertools import count
 import gzip as gz
 import pickle
+import numpy as np
 
 import torch
 import torch.nn as nn
@@ -50,9 +51,8 @@ class ReplayMemory(object):
 
 class DQN(nn.Module):
 
-    def __init__(self, n_observations, n_actions):
+    def __init__(self, n_observations, n_actions, hidden_dim):
         super(DQN, self).__init__()
-        hidden_dim = 128
         self.layer1 = nn.Linear(n_observations, hidden_dim)
         self.layer2 = nn.Linear(hidden_dim, hidden_dim)
         self.layer3 = nn.Linear(hidden_dim, n_actions)
@@ -65,35 +65,41 @@ class DQN(nn.Module):
         return self.layer3(x)
 
 class DeepQlearnAgent:
-    def __init__(self, action_space_size:int, obs_space_size:int, batch_size:int=128, replay_buffer:int=512, gamma:float=0.99, eps_start:float=0.9, eps_end:float=0.05, eps_decay:float=1000, tau:float=0.005, lr:float=1e-4):
+    def __init__(self, action_space_size:int, obs_space_size:int, batch_size:int=128, hidden_layder_dim:int=128, replay_buffer:int=512, update_freq:int=1, gamma:float=0.99, eps_start:float=0.9, eps_end:float=0.05, eps_decay:float=1000, tau:float=0.005, lr:float=1e-4):
         self.batch_size = batch_size
         self.gamma = gamma
         self.eps_start = eps_start
         self.eps_end = eps_end
         self.eps_decay = eps_decay
+        self.eps = eps_start
         self.tau = tau
         self.lr = lr
+        self.hidden_layer_dim = hidden_layder_dim
+        self.update_freq = update_freq
 
         self.n_actions = action_space_size
         self.n_obs = obs_space_size
         
-        self.policy_net = DQN(n_observations=self.n_obs, n_actions=self.n_actions).to(DEVICE)
-        self.target_net = DQN(n_observations=self.n_obs, n_actions=self.n_actions).to(DEVICE)
+        self.policy_net = DQN(n_observations=self.n_obs, n_actions=self.n_actions, hidden_dim=self.hidden_layer_dim).to(DEVICE)
+        self.target_net = DQN(n_observations=self.n_obs, n_actions=self.n_actions, hidden_dim=self.hidden_layer_dim).to(DEVICE)
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
         self.optimizer = optim.Adam(self.policy_net.parameters(), lr=self.lr, amsgrad=True)
         self.memory = ReplayMemory(replay_buffer)
 
-        self.steps_done = 0
         self.episode_duration = []
 
+    def end_episode(self, reset=False):
+        if reset:
+            self.eps = self.eps_start
+        else:
+            new_eps = self.eps * self.eps_decay
+            new_eps = new_eps if new_eps > self.eps_end else self.eps_end
+            self.eps = new_eps
+
     def select_action(self, obs, env, trainmode=True):
-        sample = random.random()
-        eps_threshold = self.eps_end + (self.eps_start - self.eps_end) * math.exp(-1. * self.steps_done / self.eps_decay)
-        if not trainmode:
-            eps_threshold = 0
-        self.steps_done += 1
-        if sample > eps_threshold:
+        sample = np.random.rand()
+        if sample < self.eps and trainmode:
             with torch.no_grad():
                 return self.policy_net(obs).max(1).indices.view(1, 1)
         else:
@@ -153,9 +159,9 @@ def OptimizeAgent(agent:DeepQlearnAgent) -> DeepQlearnAgent:
     expected_obs_action_values = (next_obs_values * agent.gamma) + reward_batch
     # expected_obs_action_values = reward_batch * agent.gamma * next_obs_values
     # Compute Huber loss
-    criterion = nn.SmoothL1Loss()
+    # criterion = nn.SmoothL1Loss()
     # MSE Loss
-    # criterion = nn.MSELoss()
+    criterion = nn.MSELoss()
     loss = criterion(obs_action_values, expected_obs_action_values.unsqueeze(1))
     # Optimize the model
     agent.optimizer.zero_grad()
@@ -165,7 +171,7 @@ def OptimizeAgent(agent:DeepQlearnAgent) -> DeepQlearnAgent:
     agent.optimizer.step()
     return agent
 
-def TrainAgent(agent:DeepQlearnAgent, env: StaticMapping2Env, nepisode:int, verbose:bool=False) -> DeepQlearnAgent:
+def TrainAgent(agent:DeepQlearnAgent, env: StaticMapping2Env, nepisode:int, verbose:bool=False, liveview:bool=False) -> DeepQlearnAgent:
     if verbose:
         print(f"Training on: {DEVICE}")
     reward_list = []
@@ -189,21 +195,22 @@ def TrainAgent(agent:DeepQlearnAgent, env: StaticMapping2Env, nepisode:int, verb
             obs = next_obs
             # Perform one step of the optimization (on the policy network)
             agent = OptimizeAgent(agent)
-            # Soft update of the target network's weights
+            # Soft update of the target network's weights every agent.update_freq
             # θ′ ← τ θ + (1 −τ )θ′
-            target_net_state_dict = agent.target_net.state_dict()
-            policy_net_state_dict = agent.policy_net.state_dict()
-            for key in policy_net_state_dict:
-                target_net_state_dict[key] = policy_net_state_dict[key] * agent.tau + target_net_state_dict[key] * (1 - agent.tau)
-            agent.target_net.load_state_dict(target_net_state_dict)
+            if ((eps+1) % agent.update_freq == 0):
+                target_net_state_dict = agent.target_net.state_dict()
+                policy_net_state_dict = agent.policy_net.state_dict()
+                for key in policy_net_state_dict:
+                    target_net_state_dict[key] = policy_net_state_dict[key] * agent.tau + target_net_state_dict[key] * (1 - agent.tau)
+                agent.target_net.load_state_dict(target_net_state_dict)
             if done:
                 agent.episode_duration.append(t+1)
                 # agent.episode_duration.append(sum(rw_list))
                 reward_list.append((eps,sum(rw_list)))
-                # agent.episode_done()
-                agent.plot_duration(verbose)
+                agent.end_episode()
+                if liveview:
+                    agent.plot_duration()
                 if verbose:
-                    # 
                     print(f"{eps}/{nepisode} {pos.item()} {env.is_full_mapping()} {info}")
                 break
     if verbose:
