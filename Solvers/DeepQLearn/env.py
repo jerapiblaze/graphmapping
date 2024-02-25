@@ -29,7 +29,7 @@ class StaticMapping2Env(gym.Env):
     link_solution = list()
     __mapped_sfc = int()
 
-    def __init__(self, physical_graph: nx.DiGraph, sfcs_list: list[nx.DiGraph], key_attrs: dict[str:str], M: int, beta: float):
+    def __init__(self, physical_graph: nx.DiGraph, sfcs_list: list[nx.DiGraph], key_attrs: dict[str:str], M:int, beta:float):
         self.physical_graph = copy.deepcopy(physical_graph)
         self.sfcs_list = copy.deepcopy(sfcs_list)
         self.key_attrs = copy.deepcopy(key_attrs)
@@ -37,10 +37,9 @@ class StaticMapping2Env(gym.Env):
         # Observation space: {0, 1} -> True if a node is mapped
         # self.observation_space = gym.spaces.Discrete(n=2, seed=42, start=0)
         # Observation space: n -> vnf_order_index
-        self.observation_space = gym.spaces.Discrete(
-            n=len(self.vnf_order), seed=42, start=0)
+        self.observation_space = gym.spaces.Discrete(n=len(self.vnf_order), seed=42, start=0)
         self.obs_space_size = len(self.vnf_order)
-        # Action space: {0, 1, 2, ..., n, n+1} -> physical node id + 1
+        # Action space: {0, 1, 2, ..., n, n+1} -> physical node_id+1
         # self.action_space = gym.Space(list(self.physical_graph.nodes), dtype='int64')
         self.action_space = gym.spaces.Discrete(n=len(list(self.physical_graph.nodes))+1, start=0, seed=42)
         self.action_space_size = len(list(self.physical_graph.nodes))
@@ -65,14 +64,11 @@ class StaticMapping2Env(gym.Env):
 
     def __execute_node_mapping(self, sfc_id, vnf_id, node_id):
         vnode_req = self.__get_vnode_req(sfc_id, vnf_id)
-        # print(f"vnode {vnf_id} _req:", vnode_req)
         nodes_cap = self.__get_node_cap(None)
         nodes_cap[node_id] -= vnode_req
-        # print(f"node_cap{node_id}: ",nodes_cap[node_id])
         if any(node < 0 for node in nodes_cap):
             raise nx.NetworkXUnfeasible(f"Requested vnode sfc={sfc_id} vnf={vnf_id} has exceed capacity of node={node_id}")
-        nx.set_node_attributes(
-            self.physical_graph_current, nodes_cap, name="weight")
+        nx.set_node_attributes(self.physical_graph_current, nodes_cap, name=self.key_attrs["node_cap"])
         self.node_solution_current.append((sfc_id, vnf_id, node_id))
 
     def __execute_link_mapping(self, sfc_id, vlink_id, link_id):
@@ -81,7 +77,7 @@ class StaticMapping2Env(gym.Env):
         links_cap[link_id] -= vlink_req
         if any(link < 0 for link in links_cap.values()):
             raise nx.NetworkXUnfeasible(f"Requested vnode sfc={sfc_id} vnf={vlink_id} has exceed capacity of node={link_id}")
-        nx.set_edge_attributes(self.physical_graph_current, links_cap, name="weight")
+        nx.set_edge_attributes(self.physical_graph_current, links_cap, name=self.key_attrs["link_cap"])
         self.link_solution_current.append((sfc_id, vlink_id, link_id))
 
     def __get_action_details(self, action):
@@ -115,36 +111,31 @@ class StaticMapping2Env(gym.Env):
         return True
 
     def __get_node_cap(self, node_id):
-        node_caps = nx.get_node_attributes(
-            self.physical_graph_current, name=self.key_attrs["node_cap"])
+        node_caps = nx.get_node_attributes(self.physical_graph_current, name=self.key_attrs["node_cap"])
         if (node_id is None):
             return node_caps
         return node_caps[node_id]
 
     def __get_link_cap(self, link_id):
-        link_caps = nx.get_edge_attributes(
-            self.physical_graph_current, name=self.key_attrs["link_cap"])
+        link_caps = nx.get_edge_attributes(self.physical_graph_current, name=self.key_attrs["link_cap"])
         if (link_id is None):
             return link_caps
         return link_caps[link_id]
 
     def __get_vnode_req(self, sfc_id, vnf_id):  # lay capa của vnf
-        vnf_reqs = nx.get_node_attributes(
-            self.sfcs_list[sfc_id], name=self.key_attrs["node_req"])
+        vnf_reqs = nx.get_node_attributes(self.sfcs_list[sfc_id], name=self.key_attrs["node_req"])
         if (vnf_id is None):
             return vnf_reqs
         return vnf_reqs[vnf_id]
 
     def __get_vlink_req(self, sfc_id, vlink_id):
-        vlink_reqs = nx.get_edge_attributes(
-            self.sfcs_list[sfc_id], name=self.key_attrs["link_req"])
+        vlink_reqs = nx.get_edge_attributes(self.sfcs_list[sfc_id], name=self.key_attrs["link_req"])
         if (vlink_id is None):
             return vlink_reqs
         return vlink_reqs[vlink_id]
 
     def __validate_action(self, action):
-        node_id, sfc_id, vnf_id, node_id_prev, sfc_id_prev, vnf_id_prev = self.__get_action_details(
-            action)
+        node_id, sfc_id, vnf_id, node_id_prev, sfc_id_prev, vnf_id_prev = self.__get_action_details(action)
         # Validate node capacity
         node_cap = self.__get_node_cap(node_id)
         # print(node_cap)
@@ -209,9 +200,6 @@ class StaticMapping2Env(gym.Env):
 
     def step(self, action):
         action = action - 1
-        if action >= 40:
-            raise Exception("ERROR")
-        # print("cu rent: ", self.node_solution_current)
         # Skip the sfc action
         if (action == -1):
             self.__skip_sfc()
@@ -255,12 +243,11 @@ class StaticMapping2Env(gym.Env):
             self.__is_truncated = True
             return ([self.vnf_order_index_current], reward, True, self.__is_truncated, info)
 
-        node_id, sfc_id, vnf_id, node_id_prev, sfc_id_prev, vnf_id_prev = self.__get_action_details(
-            action)
+        node_id, sfc_id, vnf_id, node_id_prev, sfc_id_prev, vnf_id_prev = self.__get_action_details(action)
         # print(f"action detail: node_id: {node_id}, sfc_id: {sfc_id}, vnf_id:  {vnf_id}, node_id_prev: {node_id_prev}, sfc_id_prev: {sfc_id_prev}, vnf_id_prev: {vnf_id_prev}")
         ai_t = self.__get_node_cap(node_id)
         rv = self.__get_vnode_req(sfc_id, vnf_id)
-
+        
         # First, try to map node
         try:
             self.__execute_node_mapping(sfc_id, vnf_id, node_id)  # mapping
@@ -291,8 +278,7 @@ class StaticMapping2Env(gym.Env):
             # print(f"vlink {vnf_id_prev} {vnf_id}", vlink)
             vlink_req = self.__get_vlink_req(sfc_id, vlink)
             # print("vlink_req: ", vlink_req)
-            paths = PhysicalNodeConnect(
-                self.physical_graph_current, node_id_prev, node_id, vlink_req, self.key_attrs["node_cap"])
+            paths = PhysicalNodeConnect(self.physical_graph_current, node_id_prev, node_id, vlink_req, self.key_attrs["node_cap"])
             # print(paths)
             paths = GetPathListFromPath(paths)
             for path in paths:
@@ -322,11 +308,11 @@ class StaticMapping2Env(gym.Env):
         self.__is_truncated = False
         return ([self.vnf_order_index_current], reward, self.__is_reached_termination(), self.__is_truncated, info)
 
-    def render(self) -> dict:
+    def render(self)->dict:
         sol = {}
-        sol.update({f"xNode_{n[0]}_{n[1]}_{n[2]}": 1 for n in self.node_solution})
-        sol.update({f"xEdge_{l[0]}_({l[1][0]}, _{l[1][1]})_({l[2][0]}, _{l[2][1]})": 1 for l in self.link_solution})
-        sol.update({f"xSFC_{s}": 1 for s in self.sfc_solution})
+        sol.update({f"xNode_{n[0]}_{n[1]}_{n[2]}":1 for n in self.node_solution})
+        sol.update({f"xEdge_{l[0]}_({l[1][0]},_{l[1][1]})_({l[2][0]},_{l[2][1]})":1 for l in self.link_solution})
+        sol.update({f"xSFC_{s}":1 for s in self.sfc_solution})
         return sol
 
     def close(self):
