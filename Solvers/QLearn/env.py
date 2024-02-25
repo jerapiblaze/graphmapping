@@ -50,7 +50,7 @@ class StaticMapping2Env(gym.Env):
 
     def reset(self, seed=None, options=None):
         # Initialize state
-        self.physical_graph_current = copy.deepcopy (self.physical_graph)
+        self.physical_graph_current = copy.deepcopy(self.physical_graph)
         self.vnf_order_index_current = 0
         self.node_solution_current = list()
         self.link_solution_current = list()
@@ -67,12 +67,12 @@ class StaticMapping2Env(gym.Env):
         vnode_req = self.__get_vnode_req(sfc_id, vnf_id)
         # print(f"vnode {vnf_id} _req:", vnode_req)
         nodes_cap = self.__get_node_cap(None)
+        print(f"node_cap{node_id}: ",nodes_cap[node_id])
         nodes_cap[node_id] -= vnode_req
         # print(f"node_cap{node_id}: ",nodes_cap[node_id])
         if any(node < 0 for node in nodes_cap):
             raise nx.NetworkXUnfeasible(f"Requested vnode sfc={sfc_id} vnf={vnf_id} has exceed capacity of node={node_id}")
-        nx.set_node_attributes(
-            self.physical_graph_current, nodes_cap, name="weight")
+        nx.set_node_attributes(self.physical_graph_current, nodes_cap, name=self.key_attrs["node_cap"])
         self.node_solution_current.append((sfc_id, vnf_id, node_id))
 
     def __execute_link_mapping(self, sfc_id, vlink_id, link_id):
@@ -81,7 +81,7 @@ class StaticMapping2Env(gym.Env):
         links_cap[link_id] -= vlink_req
         if any(link < 0 for link in links_cap.values()):
             raise nx.NetworkXUnfeasible(f"Requested vnode sfc={sfc_id} vnf={vlink_id} has exceed capacity of node={link_id}")
-        nx.set_edge_attributes(self.physical_graph_current, links_cap, name="weight")
+        nx.set_edge_attributes(self.physical_graph_current, links_cap, name=self.key_attrs["link_cap"])
         self.link_solution_current.append((sfc_id, vlink_id, link_id))
 
     def __get_action_details(self, action):
