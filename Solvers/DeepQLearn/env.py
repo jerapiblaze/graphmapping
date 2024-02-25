@@ -194,10 +194,6 @@ class StaticMapping2Env(gym.Env):
         self.sfc_solution.append(sfcid)
         self.__mapped_sfc += 1
 
-    def __confirm_solution2(self):
-        self.node_solution = copy.deepcopy(self.node_solution_lastgood)
-        self.link_solution = copy.deepcopy(self.link_solution_lastgood)
-
     def step(self, action):
         action = action - 1
         # Skip the sfc action
@@ -208,6 +204,7 @@ class StaticMapping2Env(gym.Env):
                 "message": "skip the sfc"
             }
             self.__is_truncated = False
+            self.__abort_mapping() 
             return ([self.vnf_order_index_current], reward, self.__is_reached_termination(), self.__is_truncated, info)
 
         # If terminated or failed earlier, do nothing
@@ -236,6 +233,7 @@ class StaticMapping2Env(gym.Env):
             #     return (self.vnf_order_index_current, reward, self.__is_reached_termination(), self.__is_truncated, info)
 
             reward = 0 - self.M
+            self.__abort_mapping()
             info = {
                 "message": f"action invalid: {action_validation}"
             }
@@ -262,7 +260,6 @@ class StaticMapping2Env(gym.Env):
         # If is the first action of a sfc, no need to map link
         if is_first:
             self.__confirm_mapping()
-            self.__confirm_solution2()
             # reward = 1
             reward = self.M - (ai_t - rv)
             info = {
@@ -293,7 +290,6 @@ class StaticMapping2Env(gym.Env):
             self.__is_truncated = True
             return ([self.vnf_order_index_current], reward, True, self.__is_truncated, info)
         self.__confirm_mapping()
-        self.__confirm_solution2()
 
         reward = self.M - (ai_t - rv) - self.beta * nhops
         info = {
