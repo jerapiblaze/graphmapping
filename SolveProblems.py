@@ -71,6 +71,15 @@ def Main(config:dict):
             LOG_SETPATH = os.path.join("./data/logs", f"{PROBLEM_SETNAME}@QL_{agentname}")
             CleanDir(LOG_SETPATH)
             args = (q, Solver, SOLUTION_SETPATH, LOG_SETPATH, timelimit, SOLVER[1])
+        case "DQL":
+            from Solvers.DeepQLearn import Solver
+            target = QLearnSolveMpWorker
+            agentname = str(os.path.basename(SOLVER[1])).split(".")[0]
+            SOLUTION_SETPATH = os.path.join("./data/solutions", f"{PROBLEM_SETNAME}@DQL_{agentname}")
+            CleanDir(SOLUTION_SETPATH)
+            LOG_SETPATH = os.path.join("./data/logs", f"{PROBLEM_SETNAME}@DQL_{agentname}")
+            CleanDir(LOG_SETPATH)
+            args = (q, Solver, SOLUTION_SETPATH, LOG_SETPATH, timelimit, SOLVER[1])
         case _:
             raise Exception(f"[Invalid config] SOLVER={SOLVER[0]}")
 
