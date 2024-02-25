@@ -65,11 +65,8 @@ class StaticMapping2Env(gym.Env):
 
     def __execute_node_mapping(self, sfc_id, vnf_id, node_id):
         vnode_req = self.__get_vnode_req(sfc_id, vnf_id)
-        # print(f"vnode {vnf_id} _req:", vnode_req)
         nodes_cap = self.__get_node_cap(None)
-        print(f"node_cap{node_id}: ",nodes_cap[node_id])
         nodes_cap[node_id] -= vnode_req
-        # print(f"node_cap{node_id}: ",nodes_cap[node_id])
         if any(node < 0 for node in nodes_cap):
             raise nx.NetworkXUnfeasible(f"Requested vnode sfc={sfc_id} vnf={vnf_id} has exceed capacity of node={node_id}")
         nx.set_node_attributes(self.physical_graph_current, nodes_cap, name=self.key_attrs["node_cap"])
