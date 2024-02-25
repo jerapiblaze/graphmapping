@@ -22,9 +22,9 @@ SFCSET:
     min: 5
     max: 5
   NODEREQ:
-    min: 2
-    max: 2
+    min: 100
+    max: 100
   LINKREQ:
-    min: 2
-    max: 2
+    min: 100
+    max: 100
 ...
