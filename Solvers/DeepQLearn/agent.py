@@ -84,7 +84,7 @@ class DeepQlearnAgent:
         self.target_net = DQN(n_observations=self.n_obs, n_actions=self.n_actions, hidden_dim=self.hidden_layer_dim).to(DEVICE)
         self.target_net.load_state_dict(self.policy_net.state_dict())
 
-        self.optimizer = optim.Adam(self.policy_net.parameters(), lr=self.lr, amsgrad=True)
+        self.optimizer = optim.AdamW(self.policy_net.parameters(), lr=self.lr, amsgrad=True)
         self.memory = ReplayMemory(replay_buffer)
 
         self.episode_duration = []
