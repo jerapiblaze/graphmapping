@@ -233,7 +233,7 @@ class StaticMapping2Env(gym.Env):
             #     }
             #     return (self.vnf_order_index_current, reward, self.__is_reached_termination(), self.__is_truncated, info)
 
-            reward = 0 - self.M
+            reward = 0
             self.__abort_mapping() 
             info = {
                 "message": f"action invalid: {action_validation}"
@@ -255,7 +255,7 @@ class StaticMapping2Env(gym.Env):
             info = {
                 "message": f"no node for {sfc_id}_{vnf_id} ({node_id})"
             }
-            reward = 0 - self.M
+            reward = 0
             self.__is_truncated = True
             return (self.vnf_order_index_current, reward, True, self.__is_truncated, info)
         # If is the first action of a sfc, no need to map link
