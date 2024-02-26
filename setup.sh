@@ -1,6 +1,6 @@
 #!/bin/bash
 
-conda env create -n graphmapping python=3.10 ipykernel numpy networkx pandas pyscipopt matplotlib scipy pulp -c conda-forge -y
+conda create -n graphmapping2 python=3.10 ipykernel numpy networkx pandas pyscipopt matplotlib scipy pulp pyyaml yaml pytorch::pytorch gymnasium -c conda-forge -y
 
 mkdir data
 mkdir data/problems
