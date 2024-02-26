@@ -196,11 +196,11 @@ def TrainAgent(agent:DeepQlearnAgent, env: StaticMapping2Env, nepisode:int, verb
                 next_obs =torch.tensor(next_obs, dtype=torch.float32, device=DEVICE).unsqueeze(0)
             agent.memory.push(obs, action, next_obs, reward)
             obs = next_obs
-            # Perform one step of the optimization (on the policy network)
-            agent = OptimizeAgent(agent)
-            # Soft update of the target network's weights every agent.update_freq
-            # θ′ ← τ θ + (1 −τ )θ′
             if ((eps+1) % agent.update_freq == 0):
+                # Perform one step of the optimization (on the policy network)
+                agent = OptimizeAgent(agent)
+                # Soft update of the target network's weights every agent.update_freq
+                # θ′ ← τ θ + (1 −τ )θ′
                 target_net_state_dict = agent.target_net.state_dict()
                 policy_net_state_dict = agent.policy_net.state_dict()
                 for key in policy_net_state_dict:
