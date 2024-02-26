@@ -97,16 +97,16 @@ class DeepQlearnAgent:
             new_eps = new_eps if new_eps > self.eps_end else self.eps_end
             self.eps = new_eps
 
-    def select_action(self, obs, env, trainmode=True):
+    def select_action(self, obs, trainmode=True):
         if not trainmode:
             obs = torch.tensor(obs, device=DEVICE, dtype=torch.float32).unsqueeze(0)
             return self.target_net(obs).max(1).indices.view(1, 1)
         sample = np.random.rand()
-        if sample < self.eps:
+        if sample > self.eps:
             with torch.no_grad():
                 return self.policy_net(obs).max(1).indices.view(1, 1)
         else:
-            return torch.tensor([[env.action_space.sample()]], device=DEVICE, dtype=torch.long)
+            None
         
     def plot_duration(self, show_result=False):
         plt.figure(1)
@@ -183,7 +183,9 @@ def TrainAgent(agent:DeepQlearnAgent, env: StaticMapping2Env, nepisode:int, verb
         obs = torch.tensor(obs, dtype=torch.float32, device=DEVICE).unsqueeze(0)
         rw_list = []
         for t in count():
-            action = agent.select_action(obs, env)
+            action = agent.select_action(obs)
+            if not action:
+                action = torch.tensor([[env.action_space.sample()]], device=DEVICE, dtype=torch.long)
             next_obs, reward, terminated, truncated, info = env.step(action.item())
             pos = obs
             rw_list.append(reward)
