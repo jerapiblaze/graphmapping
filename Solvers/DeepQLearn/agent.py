@@ -98,8 +98,11 @@ class DeepQlearnAgent:
             self.eps = new_eps
 
     def select_action(self, obs, env, trainmode=True):
+        if not trainmode:
+            obs = torch.tensor(obs, device=DEVICE, dtype=torch.float32).unsqueeze(0)
+            return self.target_net(obs).max(1).indices.view(1, 1)
         sample = np.random.rand()
-        if sample < self.eps and trainmode:
+        if sample < self.eps:
             with torch.no_grad():
                 return self.policy_net(obs).max(1).indices.view(1, 1)
         else:
@@ -204,11 +207,10 @@ def TrainAgent(agent:DeepQlearnAgent, env: StaticMapping2Env, nepisode:int, verb
                     target_net_state_dict[key] = policy_net_state_dict[key] * agent.tau + target_net_state_dict[key] * (1 - agent.tau)
                 agent.target_net.load_state_dict(target_net_state_dict)
             if done:
-                agent.episode_duration.append(t+1)
-                # agent.episode_duration.append(sum(rw_list))
-                reward_list.append((eps,sum(rw_list)))
                 agent.end_episode()
+                reward_list.append((eps,sum(rw_list)))
                 if liveview:
+                    agent.episode_duration.append(sum(rw_list))
                     agent.plot_duration()
                 if verbose:
                     print(f"{eps}/{nepisode} {pos.item()} {env.is_full_mapping()} {info}")

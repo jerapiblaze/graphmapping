@@ -28,7 +28,7 @@ class Solver(GraphMappingSolver):
         timedr = 0
         self.problem.status = 1
         while not terminated and not truncated:
-            obs = torch.tensor(obs, dtype=torch.long, device=agent.DEVICE)
+            # obs = torch.tensor(obs, dtype=torch.long, device=agent.DEVICE)
             action = self.agent.select_action(obs, self.env, trainmode=False).item()
             next_obs, reward, terminated, truncated, info = self.env.step(action)
             obs = next_obs

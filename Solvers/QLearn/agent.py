@@ -1,6 +1,15 @@
 import pickle
 import gzip as gz
 import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+import torch
+
+# set up matplotlib
+IS_IPYTHON = 'inline' in matplotlib.get_backend()
+if IS_IPYTHON:
+    from IPython import display
+plt.ion()
 
 from .env import *
 
@@ -15,6 +24,7 @@ class QLearningAgent():
         self.epsilon_decay = epsilon_decay
         self.epsilon = self.epsilon_max
         self.q_table = np.random.uniform(0, 1, size=(state_space_size, action_space_size))
+        self.episode_duration = []
 
     def end_episode(self, reset=False):
         if reset:
@@ -45,8 +55,31 @@ class QLearningAgent():
             self.q_table[obs, action] = new_q
             # print("new q: ", self.q_table[obs, action])
 
+    def plot_duration(self, show_result=False):
+        plt.figure(1)
+        duration_t = torch.tensor(self.episode_duration, dtype=torch.float)
+        if show_result:
+            plt.title("Result")
+        else:
+            plt.clf()
+            plt.title("Trainning...")
+        plt.xlabel("Episode")
+        plt.ylabel("Duration")
+        plt.plot(duration_t.numpy())
+        if len(duration_t) >= 100:
+            means = duration_t.unfold(0, 100, 1).mean(1).view(-1)
+            means = torch.cat((torch.zeros(99), means))
+            plt.plot(means.numpy())
+        plt.pause(0.001)
+        if IS_IPYTHON:
+            if not show_result:
+                display.display(plt.gcf())
+                display.clear_output(wait=True)
+            else:
+                display.display(plt.gcf())
+
 # Train the agent, return the trained agent and the q-value during episodes
-def TrainAgent(agent:QLearningAgent, env:StaticMapping2Env, nepisode:int, verbose:bool=False) -> tuple[QLearningAgent, list[float]]:
+def TrainAgent(agent:QLearningAgent, env:StaticMapping2Env, nepisode:int, verbose:bool=False, liveview:bool=False) -> tuple[QLearningAgent, list[float]]:
     reward_list = []
     for ep in range(nepisode):
         obs, info = env.reset()
@@ -64,8 +97,11 @@ def TrainAgent(agent:QLearningAgent, env:StaticMapping2Env, nepisode:int, verbos
         if verbose:
             print(f"ep_{ep}: {env.is_full_mapping()} {obs} {info}")
             pass
-        reward_list.append((ep, sum(rw_list)))
         agent.end_episode()
+        reward_list.append((ep, sum(rw_list)))
+        if liveview:
+            agent.episode_duration.append(sum(rw_list))
+            agent.plot_duration()
     return agent, reward_list
 
 def SaveAgent(path:str, agent:QLearningAgent):
