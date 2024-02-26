@@ -112,12 +112,12 @@ class DeepQlearnAgent:
         plt.figure(1)
         duration_t = torch.tensor(self.episode_duration, dtype=torch.float)
         if show_result:
-            plt.title("Result")
+            plt.title("DQL-Result")
         else:
             plt.clf()
-            plt.title("Trainning...")
+            plt.title("DQL-Trainning...")
         plt.xlabel("Episode")
-        plt.ylabel("Duration")
+        plt.ylabel("Sum of reward")
         plt.plot(duration_t.numpy())
         if len(duration_t) >= 100:
             means = duration_t.unfold(0, 100, 1).mean(1).view(-1)
