@@ -98,9 +98,10 @@ def TrainAgent(agent:QLearningAgent, env:StaticMapping2Env, nepisode:int, verbos
             print(f"ep_{ep}: {env.is_full_mapping()} {obs} {info}")
             pass
         agent.end_episode()
-        reward_list.append((ep, sum(rw_list)))
+        rw = float(rw_list)/len(rw_list)
+        reward_list.append((ep, rw))
         if liveview:
-            agent.episode_duration.append(sum(rw_list))
+            agent.episode_duration.append(rw)
             agent.plot_duration()
     return agent, reward_list
 
