@@ -42,8 +42,8 @@ class StaticMapping2Env(gym.Env):
         self.obs_space_size = len(self.vnf_order)
         # Action space: {-1,0, 1, 2, ..., n} -> physical node id
         # self.action_space = gym.Space(list(self.physical_graph.nodes), dtype='int64')
-        self.action_space = gym.spaces.Discrete(n=len(list(self.physical_graph.nodes))+1, start=-1, seed=42)
-        self.action_space_size = len(list(self.physical_graph.nodes))
+        self.action_space = gym.spaces.Discrete(n=len(list(self.physical_graph.nodes))+1, start=0, seed=42)
+        self.action_space_size = len(list(self.physical_graph.nodes))+1
         self.M = M
         self.beta = beta
         self.__is_truncated = False
@@ -165,6 +165,8 @@ class StaticMapping2Env(gym.Env):
 
     # TODO: SKIP SFC
     def __skip_sfc(self):
+        if self.__is_first_of_sfc():
+            self.vnf_order_index_current +=1
         while (True):
             if self.__is_reached_termination():
                 return
@@ -196,11 +198,12 @@ class StaticMapping2Env(gym.Env):
         self.__mapped_sfc += 1
 
     def step(self, action):
+        action = action - 1
         # print("cu rent: ", self.node_solution_current)
         # Skip the sfc action
         if (action == -1):
             self.__skip_sfc()
-            reward = 0
+            reward = 0 - self.M
             info = {
                 "message": "skip the sfc"
             }
@@ -215,7 +218,7 @@ class StaticMapping2Env(gym.Env):
                 "message": "the env is terminated or truncated"
             }
             self.__is_truncated = True
-            return (self.vnf_order_index_current, reward, True, self.__is_truncated, info)
+            return (self.vnf_order_index_current, reward, self.__is_reached_termination(), self.__is_truncated, info)
 
         # Check if first action and last action
         is_first = self.__is_first_of_sfc()
@@ -240,7 +243,7 @@ class StaticMapping2Env(gym.Env):
             }
             # self.__confirm_solution2()
             self.__is_truncated = True
-            return (self.vnf_order_index_current, reward, True, self.__is_truncated, info)
+            return (self.vnf_order_index_current, reward, self.__is_reached_termination(), self.__is_truncated, info)
 
         node_id, sfc_id, vnf_id, node_id_prev, sfc_id_prev, vnf_id_prev = self.__get_action_details(action)
         # print(f"action detail: node_id: {node_id}, sfc_id: {sfc_id}, vnf_id:  {vnf_id}, node_id_prev: {node_id_prev}, sfc_id_prev: {sfc_id_prev}, vnf_id_prev: {vnf_id_prev}")
@@ -257,7 +260,7 @@ class StaticMapping2Env(gym.Env):
             }
             reward = 0 - self.M
             self.__is_truncated = True
-            return (self.vnf_order_index_current, reward, True, self.__is_truncated, info)
+            return (self.vnf_order_index_current, reward, self.__is_reached_termination(), self.__is_truncated, info)
         # If is the first action of a sfc, no need to map link
         if is_first:
             self.__confirm_mapping()
@@ -289,7 +292,7 @@ class StaticMapping2Env(gym.Env):
             }
             reward = 0 - self.M
             self.__is_truncated = True
-            return (self.vnf_order_index_current, reward, True, self.__is_truncated, info)
+            return (self.vnf_order_index_current, reward, self.__is_reached_termination(), self.__is_truncated, info)
         self.__confirm_mapping()
 
         reward = self.M - (ai_t - rv) - self.beta * nhops

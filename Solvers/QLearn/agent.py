@@ -3,6 +3,7 @@ import gzip as gz
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib import colors as colors
 import torch
 
 # set up matplotlib
@@ -62,14 +63,14 @@ class QLearningAgent():
             plt.title("QL-Result")
         else:
             plt.clf()
-            plt.title("QL-Trainning...")
+            plt.title("QL-Training")
         plt.xlabel("Episode")
-        plt.ylabel("Sum of reward")
-        plt.plot(duration_t.numpy())
+        plt.ylabel("Cumulative reward")
+        plt.plot(duration_t.numpy(), color='silver') # plot cumulative reward
         if len(duration_t) >= 100:
             means = duration_t.unfold(0, 100, 1).mean(1).view(-1)
             means = torch.cat((torch.zeros(99), means))
-            plt.plot(means.numpy())
+            plt.plot(means.numpy(), color='k') # plot average reward
         plt.pause(0.001)
         if IS_IPYTHON:
             if not show_result:
@@ -98,7 +99,7 @@ def TrainAgent(agent:QLearningAgent, env:StaticMapping2Env, nepisode:int, verbos
             print(f"ep_{ep}: {env.is_full_mapping()} {obs} {info}")
             pass
         agent.end_episode()
-        rw = rw_list                          # cummutative reward
+        rw = sum(rw_list)                         # cummutative reward
         # rw = float(rw_list)/len(rw_list)    # average reward
         reward_list.append((ep, rw))
         if liveview:

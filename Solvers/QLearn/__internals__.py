@@ -20,6 +20,7 @@ class Solver(GraphMappingSolver):
         self.verbose = verbose
 
     def Solve(self,) -> GraphMappingProblem:
+        log = []
         terminated = False
         truncated = False
         obs, info = self.env.reset()
@@ -29,6 +30,7 @@ class Solver(GraphMappingSolver):
         while not terminated and not truncated:
             action = self.agent.choose_action(obs, trainmode=False)
             next_obs, reward, terminated, truncated, info = self.env.step(action)
+            log.append(f"{obs} {action} {next_obs} {reward} {terminated} {truncated} {info}")
             obs = next_obs
             timenow = time.perf_counter()
             timedr = abs(timest-timenow)
@@ -41,4 +43,6 @@ class Solver(GraphMappingSolver):
             with open(f"{os.path.join(self.logpath, self.problem.name)}.sol", "wt") as f:
                 for k in self.problem.solution.keys():
                     f.write(f"{k}:{self.problem.solution[k]}\n")
+            with open(f"{os.path.join(self.logpath, self.problem.name)}.log", "wt") as f:
+                f.write("\n".join(log))
         return self.problem
