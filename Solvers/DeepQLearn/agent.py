@@ -3,6 +3,7 @@ import math
 import random
 import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib import colors as colors
 from collections import namedtuple, deque
 from itertools import count
 import gzip as gz
