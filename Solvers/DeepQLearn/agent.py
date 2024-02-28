@@ -53,6 +53,7 @@ class DQN(nn.Module):
 
     def __init__(self, n_observations, n_actions, hidden_dim):
         super(DQN, self).__init__()
+        self.hidden_dim = hidden_dim
         self.layer1 = nn.Linear(n_observations, hidden_dim)
         self.layer2 = nn.Linear(hidden_dim, hidden_dim)
         self.layer3 = nn.Linear(hidden_dim, n_actions)
@@ -93,7 +94,9 @@ class DeepQlearnAgent:
         if reset:
             self.eps = self.eps_start
         else:
-            new_eps = self.eps * self.eps_decay
+            # new_eps = self.eps * self.eps_decay
+            # new_eps = self.eps * math.exp(-1*self.eps_decay)
+            new_eps = self.eps - self.eps_decay
             new_eps = new_eps if new_eps > self.eps_end else self.eps_end
             self.eps = new_eps
 
@@ -115,14 +118,14 @@ class DeepQlearnAgent:
             plt.title("DQL-Result")
         else:
             plt.clf()
-            plt.title("DQL-Trainning...")
+            plt.title("DQL-Training")
         plt.xlabel("Episode")
-        plt.ylabel("Sum of reward")
-        plt.plot(duration_t.numpy())
+        plt.ylabel("Cumulative reward")
+        plt.plot(duration_t.numpy(), color='silver')
         if len(duration_t) >= 100:
             means = duration_t.unfold(0, 100, 1).mean(1).view(-1)
             means = torch.cat((torch.zeros(99), means))
-            plt.plot(means.numpy())
+            plt.plot(means.numpy(), color='darkgoldenrod') # plot average reward
         plt.pause(0.001)
         if IS_IPYTHON:
             if not show_result:
@@ -162,10 +165,12 @@ def OptimizeAgent(agent:DeepQlearnAgent) -> DeepQlearnAgent:
     expected_obs_action_values = (next_obs_values * agent.gamma) + reward_batch
     # expected_obs_action_values = reward_batch * agent.gamma * next_obs_values
     # Compute Huber loss
-    # criterion = nn.SmoothL1Loss()
+    # criterion = nn.HuberLoss()
+    criterion = nn.SmoothL1Loss()
     # MSE Loss
-    criterion = nn.MSELoss()
+    # criterion = nn.MSELoss()
     loss = criterion(obs_action_values, expected_obs_action_values.unsqueeze(1))
+    # loss = criterion(expected_obs_action_values.unsqueeze(1), obs_action_values)
     # Optimize the model
     agent.optimizer.zero_grad()
     loss.backward()
@@ -210,12 +215,15 @@ def TrainAgent(agent:DeepQlearnAgent, env: StaticMapping2Env, nepisode:int, verb
                 agent.target_net.load_state_dict(target_net_state_dict)
             if done:
                 agent.end_episode()
-                reward_list.append((eps,sum(rw_list)))
+                # rw = float(sum(rw_list))/len(rw_list) # average reward
+                rw = sum(rw_list)                # cumulative reward
+                reward_list.append((eps,rw))
                 if liveview:
-                    agent.episode_duration.append(sum(rw_list))
+                    agent.episode_duration.append(rw)
                     agent.plot_duration()
                 if verbose:
-                    print(f"{eps}/{nepisode} {pos.item()} {env.is_full_mapping()} {info}")
+                    print(f"{eps}/{nepisode} {pos.item()} {env.is_full_mapping()} {agent.eps} {info}")
+                    # print(f"{eps}/{nepisode} {rw} {agent.eps} {info}")
                 break
     if verbose:
         print("Completed.")
