@@ -3,8 +3,8 @@ from GraphMappingProblem import GraphMappingProblem
 import sys
 import os
 import time
-from . import agent
-from . import env
+from . import agent3
+from . import env3
 import torch
 
 sys.path.append(os.path.dirname(__file__))
@@ -14,8 +14,8 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 class Solver(GraphMappingSolver):
     def __init__(self, problem: GraphMappingProblem, agentpath: str, logpath: str = None, timelimit: int = None, verbose: bool = False):
         self.problem = problem
-        self.agent = agent.LoadAgent(agentpath)
-        self.env = env.StaticMapping2Env(problem.PHY, problem.SFC_SET, key_attrs={"node_req": "req", "link_req": "req", "node_cap": "cap", "link_cap": "cap"}, M=1500, beta=20)
+        self.agent = agent3.LoadAgent(agentpath)
+        self.env = env3.StaticMapping2Env(problem.PHY, problem.SFC_SET, key_attrs={"node_req": "req", "link_req": "req", "node_cap": "cap", "link_cap": "cap"}, M=1500, beta=20)
         self.logpath = logpath
         self.timelimit = timelimit
         self.verbose = verbose
