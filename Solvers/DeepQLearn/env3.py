@@ -4,15 +4,6 @@ import copy
 import numpy as np
 import math
 
-def env_fbin(arr:np.ndarray) -> int:
-    b_str = "".join(str(b) for b in arr.tolist()).replace(".","")
-    return int(b_str,2)
-
-def env_2bin(i:int, n:int) -> np.ndarray:
-    b_str = [int(b) for b in list(str(np.binary_repr(i, width=n)))]
-    b_str = np.array(b_str, dtype=np.int8)
-    return b_str
-
 class StaticMapping2Env(gym.Env):
     # Actions space
     action_space = gym.Space()

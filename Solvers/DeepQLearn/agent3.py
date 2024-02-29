@@ -15,7 +15,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
-from env3 import StaticMapping2Env
+from .env3 import StaticMapping2Env
 
 # Delect device for trainning
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
