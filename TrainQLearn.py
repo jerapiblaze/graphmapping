@@ -29,7 +29,7 @@ def Main(config):
                                         alpha=alpha, gamma=gamma, epsilon_max=epsilon_start, 
                                         epsilon_min=epsilon_end, epsilon_decay=epsilon_decay)
         trained_agent, rewards = QLearn.agent.TrainAgent(agent, env, n_episode, verbose, liveview)
-        model_save_path = os.path.join("./data/__internals__/QLn", f"{problem.name}.pkl.gz")
+        model_save_path = os.path.join("./data/__internals__/QL", f"{problem.name}.pkl.gz")
         QLearn.agent.SaveAgent(model_save_path, trained_agent)
         if not save_reward:
             continue
