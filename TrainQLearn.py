@@ -11,7 +11,7 @@ def Main():
     # print(problem.SFC_SET.edges(data= True))
     env = QLearn.env.StaticMapping2Env(problem.PHY, problem.SFC_SET, {"node_req": "req", "link_req": "req", "node_cap": "cap", "link_cap": "cap"}, 1500, 20)
     
-    n_episodes = 20000
+    n_episodes = 5000
     alpha = 0.009
     gamma = 0.8
     epsilon_max, epsilon_min = 1, 0.01 

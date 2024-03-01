@@ -14,15 +14,15 @@ def Main():
     obs, info = env.reset()
     # agent = DQL.agent.DeepQlearnAgent(env.obs_space_size, env.action_space_size) eps_decay = 0.9976
     agent = DQL.agent3.DeepQlearnAgent(env.action_space.n, len(obs), 
-                                       gamma=0.8, eps_decay=0.9954, eps_start=1, eps_end=0.01, 
-                                       replay_buffer=10000, batch_size=128, tau=0.005, lr=0.006, hidden_layder_dim=128, 
+                                       gamma=0.8, eps_decay=0.9976, eps_start=1, eps_end=0.01, 
+                                       replay_buffer=10000, batch_size=128, tau=0.005, lr=0.001, hidden_layder_dim=128, 
                                        update_freq=1)
     trained_agent, reward_values = DQL.agent3.TrainAgent(agent, env, 20000, verbose=True, liveview=True)
     with open("./debug_dq3.csv", "wt") as f:
         f.write("ep,q\n")
         for r in reward_values:
             f.write(f"{r[0]}, {r[1]}\n")
-    DQL.agent.SaveAgent("./data/__internals__/DQL/DUMMY.pkl.gz", trained_agent)
+    DQL.agent3.SaveAgent("./data/__internals__/DQL/DUMMY.pkl.gz", trained_agent)
     pass
 
 

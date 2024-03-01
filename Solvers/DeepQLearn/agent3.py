@@ -58,6 +58,7 @@ class DQN(nn.Module):
         self.layer1 = nn.Linear(n_observations, hidden_dim)
         self.layer2 = nn.Linear(hidden_dim, hidden_dim)
         self.layer22 = nn.Linear(hidden_dim, hidden_dim)
+        self.layer222 = nn.Linear(hidden_dim, hidden_dim)
         self.layer3 = nn.Linear(hidden_dim, n_actions)
 
     # Called with either one element to determine next action, or a batch
@@ -66,6 +67,7 @@ class DQN(nn.Module):
         x = F.relu(self.layer1(x))
         x = F.relu(self.layer2(x))
         x = F.relu(self.layer22(x))
+        x = F.relu(self.layer222(x))
         return self.layer3(x)
 
 class DeepQlearnAgent:
