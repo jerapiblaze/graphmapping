@@ -1,7 +1,7 @@
 ---
 PROBLEM_SETNAME: "DUMMY"
-SOLVER: "ILP@SCIP"
-TIMELIMIT: 1000
+SOLVER: "ILP@GUROBI"
+TIMELIMIT: 3600
 LOGPATH: "./data/logs"
 ...
 # ---
@@ -13,6 +13,12 @@ LOGPATH: "./data/logs"
 ---
 PROBLEM_SETNAME: "DUMMY"
 SOLVER: "QL@./data/__internals__/QLearn/DUMMY.pkl.gz"
+TIMELIMIT: 180
+LOGPATH: "./data/logs"
+...
+---
+PROBLEM_SETNAME: "DUMMY"
+SOLVER: "DQL@./data/__internals__/DQL/DUMMY.pkl.gz"
 TIMELIMIT: 180
 LOGPATH: "./data/logs"
 ...
