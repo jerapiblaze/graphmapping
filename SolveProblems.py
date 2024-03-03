@@ -80,6 +80,14 @@ def Main(config:dict):
             LOG_SETPATH = os.path.join("./data/logs", f"{PROBLEM_SETNAME}@DQL_{agentname}")
             CleanDir(LOG_SETPATH)
             args = (q, Solver, SOLUTION_SETPATH, LOG_SETPATH, timelimit, SOLVER[1])
+        case "GREEDY":
+            from Solvers.Greedy import Solver
+            target = ILPSolveMpWorker
+            SOLUTION_SETPATH = os.path.join("./data/solutions", f"{PROBLEM_SETNAME}@GREEDY")
+            CleanDir(SOLUTION_SETPATH)
+            LOG_SETPATH = os.path.join("./data/logs", f"{PROBLEM_SETNAME}@GREEDY")
+            CleanDir(LOG_SETPATH)
+            args = (q, Solver, SOLUTION_SETPATH, LOG_SETPATH, timelimit)
         case _:
             raise Exception(f"[Invalid config] SOLVER={SOLVER[0]}")
 

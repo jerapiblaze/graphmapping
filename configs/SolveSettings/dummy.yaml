@@ -22,3 +22,9 @@ SOLVER: "DQL@./data/__internals__/DQL/DUMMY.pkl.gz"
 TIMELIMIT: 180
 LOGPATH: "./data/logs"
 ...
+---
+PROBLEM_SETNAME: "DUMMY"
+SOLVER: "GREEDY"
+TIMELIMIT: 180
+LOGPATH: "./data/logs"
+...
