@@ -10,7 +10,7 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 def Main(config):
     print(config)
     if config["DELETE_OLD_DATA"]:
-        CleanDir("./data/__internals__/QL")
+        CleanDir("./data/__internals__/DQL")
     problemset_name = config["PROBLEM_SETNAME"]
     save_reward = config["SAVE_REWARDS"]
     liveview, verbose = config["LIVEVIEW"], config["VERBOSE"]
