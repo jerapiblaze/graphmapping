@@ -139,6 +139,31 @@ class DeepQlearnAgent:
             else:
                 display.display(plt.gcf())
 
+def OptimizeAgent2(agent:DeepQlearnAgent) -> DeepQlearnAgent:
+    if (len(agent.memory) < agent.batch_size):
+        return agent
+    transisions = agent.memory.sample(agent.batch_size)
+    for transision in transisions:
+        transision = TRANSITION(*transision)
+        if transision.next_obs is None:
+            continue
+        obs = transision.obs
+        next_obs = transision.next_obs
+        action = transision.action
+        reward = transision.reward
+        q_current = agent.policy_net(obs)
+        with torch.no_grad():
+            q_next = agent.target_net(next_obs)
+        expected_q = q_next * agent.gamma + reward
+        criterition = nn.SmoothL1Loss()
+        loss = criterition(q_current, expected_q)
+        agent.optimizer.zero_grad()
+        loss.backward()
+        # In-place gradient clipping
+        torch.nn.utils.clip_grad_value_(agent.policy_net.parameters(), 1024)
+        agent.optimizer.step()
+    return agent
+
 def OptimizeAgent(agent:DeepQlearnAgent) -> DeepQlearnAgent:
     if (len(agent.memory) < agent.batch_size):
         return agent
@@ -209,7 +234,7 @@ def TrainAgent(agent:DeepQlearnAgent, env: StaticMapping2Env, nepisode:int, verb
             obs = next_obs
             if ((eps+1) % agent.update_freq == 0):
                 # Perform one step of the optimization (on the policy network)
-                agent = OptimizeAgent(agent)
+                agent = OptimizeAgent2(agent)
                 # Soft update of the target network's weights every agent.update_freq
                 # θ′ ← τ θ + (1 −τ )θ′
                 target_net_state_dict = agent.target_net.state_dict()
