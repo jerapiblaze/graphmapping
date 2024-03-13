@@ -12,8 +12,8 @@ def Get_PHY_matrix(graph1:nx.DiGraph, nodecapname:str, linkcapname:str) -> np.nd
                 cap = nx.get_node_attributes(graph1, name=nodecapname).get(i, 0)
                 A_i[i][j] = cap
                 continue
-            # bw, path = GetMaxIndirectBandwidth(graph1, i, j, linkcapname)
-            # A_i[i][j] = bw
+            bw, path = GetMaxIndirectBandwidth(graph1, i, j, linkcapname)
+            A_i[i][j] = bw
     return A_i
 
 def GetMaxIndirectBandwidth(graph, start, destination, capname):

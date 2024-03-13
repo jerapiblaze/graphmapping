@@ -151,30 +151,33 @@ class DeepQlearnAgent:
             else:
                 display.display(plt.gcf())
 
-def OptimizeAgent2(agent:DeepQlearnAgent) -> DeepQlearnAgent:
+def OptimizeAgent2(agent:DeepQlearnAgent) -> tuple[DeepQlearnAgent, float]:
     if (len(agent.memory) < agent.batch_size):
-        return agent
+        return agent, None
     transisions = agent.memory.sample(agent.batch_size)
+    loss_total = []
     for transision in transisions:
         transision = TRANSITION(*transision)
         if transision.next_obs is None:
             continue
         obs = transision.obs
         next_obs = transision.next_obs
-        action = transision.action
-        reward = transision.reward
-        q_current = agent.policy_net(obs)
+        action = transision.action.item()
+        reward = transision.reward.item()
+        q_current = torch.flatten(agent.policy_net(obs))[action] # Q(s, a)
         with torch.no_grad():
-            q_next = agent.target_net(next_obs)
-        expected_q = q_next * agent.gamma + reward
+            q_next = torch.flatten(agent.target_net(next_obs)).max()
+        expected_q = q_next * agent.gamma + reward # Q'(s', a)
         criterition = nn.SmoothL1Loss()
-        loss = criterition(q_current, expected_q)
+        loss = criterition(q_current, expected_q) # delta = Q(s, a) - Q()
         agent.optimizer.zero_grad()
         loss.backward()
         # In-place gradient clipping
         torch.nn.utils.clip_grad_value_(agent.policy_net.parameters(), 1024)
         agent.optimizer.step()
-    return agent
+        loss_total.append(loss.item())
+    loss_avg = np.average(loss_total)
+    return (agent, loss_avg)
 
 def TrainAgent(agent:DeepQlearnAgent, env: StaticMapping2Env, nepisode:int, verbose:bool=False, liveview:bool=False) -> DeepQlearnAgent:
     if verbose:
@@ -200,7 +203,7 @@ def TrainAgent(agent:DeepQlearnAgent, env: StaticMapping2Env, nepisode:int, verb
             obs = next_obs
             if ((eps+1) % agent.update_freq == 0):
                 # Perform one step of the optimization (on the policy network)
-                agent = OptimizeAgent2(agent)
+                agent, train_loss = OptimizeAgent2(agent)
                 # Soft update of the target network's weights every agent.update_freq
                 # θ′ ← τ θ + (1 −τ )θ′
                 target_net_state_dict = agent.target_net.state_dict()
@@ -217,7 +220,7 @@ def TrainAgent(agent:DeepQlearnAgent, env: StaticMapping2Env, nepisode:int, verb
                     agent.episode_duration.append(rw)
                     agent.plot_duration()
                 if verbose:
-                    print(f"{eps}/{nepisode} @{t} {env.vnf_order_index_current} {env.is_full_mapping()} {agent.eps} {info}")
+                    print(f"{eps}/{nepisode} @{t} {env.vnf_order_index_current} {env.is_full_mapping()} {agent.eps} {info} {train_loss}")
                     # print(f"{eps}/{nepisode} {rw} {agent.eps} {info}")
                 break
     if verbose:
