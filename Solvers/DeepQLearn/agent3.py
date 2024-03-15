@@ -169,7 +169,7 @@ def OptimizeAgent2(agent:DeepQlearnAgent) -> tuple[DeepQlearnAgent, float]:
 
 def OptimizeAgent(agent:DeepQlearnAgent) -> DeepQlearnAgent:
     if (len(agent.memory) < agent.batch_size):
-        return agent
+        return agent, None
     transisions = agent.memory.sample(agent.batch_size)
     # Transpose the batch (see https://stackoverflow.com/a/19343/3343043 for
     # detailed explanation). This converts batch-array of Transitions
@@ -210,7 +210,7 @@ def OptimizeAgent(agent:DeepQlearnAgent) -> DeepQlearnAgent:
     # In-place gradient clipping
     torch.nn.utils.clip_grad_value_(agent.policy_net.parameters(), 1024)
     agent.optimizer.step()
-    return agent
+    return agent, None
 
 def TrainAgent(agent:DeepQlearnAgent, env: StaticMapping2Env, nepisode:int, verbose:bool=False, liveview:bool=False) -> DeepQlearnAgent:
     if verbose:
@@ -237,7 +237,7 @@ def TrainAgent(agent:DeepQlearnAgent, env: StaticMapping2Env, nepisode:int, verb
             obs = next_obs
             if ((eps+1) % agent.update_freq == 0):
                 # Perform one step of the optimization (on the policy network)
-                agent, train_loss = OptimizeAgent2(agent)
+                agent, train_loss = OptimizeAgent(agent)
                 # Soft update of the target network's weights every agent.update_freq
                 # θ′ ← τ θ + (1 −τ )θ′
                 target_net_state_dict = agent.target_net.state_dict()

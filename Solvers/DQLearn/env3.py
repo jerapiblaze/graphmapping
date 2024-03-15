@@ -73,6 +73,9 @@ class StaticMapping2Env(gym.Env):
     def __observation(self):
         obs = Get_PHY_matrix(self.physical_graph_current, self.key_attrs["node_cap"], self.key_attrs["link_cap"])
         for node in self.physical_graph_current.nodes:
+            if self.__is_reached_termination():
+                obs[node][node] = 0 - obs[node][node]
+                continue
             if self.__validate_action(node):
                 obs[node][node] = 0 - obs[node][node]
         return obs.reshape((1, len(list(self.physical_graph.nodes)), len(list(self.physical_graph.nodes))))

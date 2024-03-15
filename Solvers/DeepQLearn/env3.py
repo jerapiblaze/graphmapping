@@ -71,6 +71,9 @@ class StaticMapping2Env(gym.Env):
     def __observation(self):
         nodes_cap = self.__get_node_cap()
         for node in self.physical_graph_current.nodes:
+            if self.__is_reached_termination():
+                nodes_cap[node] = 0 - nodes_cap[node]
+                continue
             if self.__validate_action(node):
                 nodes_cap[node] = 0 - nodes_cap[node]
         return np.asarray(list(nodes_cap.values()), dtype=np.int64)
